@@ -43,9 +43,11 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:numStars="5"
-                android:rating="5"
                 android:layout_margin="10dp"
                 android:progressTint="@color/green"
+                android:progress="4"
+                android:secondaryProgress="5"
+                android:secondaryProgressTint="@color/grey"
                 android:id="@+id/ratingBar"/>
 
             <View
@@ -76,7 +78,7 @@
                 android:layout_gravity="center"
                 android:layout_margin="15dp"
                 android:background="@drawable/search_bg"
-                android:backgroundTint="@color/green"
+                android:backgroundTint="@color/red"
                 android:textColor="@color/white"
                 android:textSize="20sp"
                 android:textStyle="bold|italic"

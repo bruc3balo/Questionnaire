@@ -98,16 +98,25 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
             case CLOSED_QUESTION:
                 if (!checkIfNull(q.getClosedAnswerYes())) {
                     holder.yesB.setText(q.getClosedAnswerYes());
+                } else {
+                    holder.yesB.setText("Yes");
                 }
+
                 holder.yesB.setOnClickListener(v -> {
                     holder.yesB.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
+                    holder.yesB.setTextColor(Color.WHITE);
+                    holder.noB.setTextColor(Color.BLACK);
                     holder.noB.setBackgroundTintList(null);
                 });
                 if (!checkIfNull(q.getClosedAnswerNo())) {
                     holder.noB.setText(q.getClosedAnswerNo());
+                } else {
+                    holder.noB.setText("No");
                 }
                 holder.noB.setOnClickListener(v -> {
                     holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                    holder.noB.setTextColor(Color.WHITE);
+                    holder.yesB.setTextColor(Color.BLACK);
                     holder.yesB.setBackgroundTintList(null);
                 });
                 break;
@@ -137,37 +146,41 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                 holder.answerField2.setVisibility(View.GONE);
 
 
-                System.out.println("q1.. primary : " + q.getPrimaryQuestion() + " secondary : " + q.getSecondaryQuestion());
 
 
-                if (!checkIfNull(q.getPrimaryAnswer())) {
-                    holder.yesB.setText(q.getPrimaryAnswer());
+                if (!checkIfNull(q.getClosedAnswerYes())) {
+                    holder.yesB.setText(q.getClosedAnswerYes());
                     holder.yesB.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             holder.yesB.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
+                            holder.yesB.setTextColor(Color.WHITE);
+                            holder.noB.setTextColor(Color.BLACK);
                             holder.noB.setBackgroundTintList(null);
+
+                            holder.questionTv2.setVisibility(View.VISIBLE);
+                            holder.answerField2.setVisibility(View.VISIBLE);
+                        }
+                    });
+                }
+
+                if (!checkIfNull(q.getClosedAnswerNo())) {
+                    holder.noB.setText(q.getClosedAnswerNo());
+                    holder.noB.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                            holder.noB.setTextColor(Color.WHITE);
+                            holder.yesB.setTextColor(Color.BLACK);
+                            holder.yesB.setBackgroundTintList(null);
+
 
                             holder.questionTv2.setVisibility(View.GONE);
                             holder.answerField2.setVisibility(View.GONE);
                         }
                     });
                 }
-
-                if (!checkIfNull(q.getSecondaryAnswer())) {
-                    holder.noB.setText(q.getSecondaryAnswer());
-                    holder.noB.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
-                            holder.yesB.setBackgroundTintList(null);
-                            holder.questionTv2.setVisibility(View.VISIBLE);
-                            holder.answerField2.setVisibility(View.VISIBLE);
-                        }
-                    });
-                }
                 break;
-
         }
 
         holder.skipButton.setOnClickListener(v -> skipDialog());

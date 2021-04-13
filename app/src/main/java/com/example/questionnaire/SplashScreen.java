@@ -1,7 +1,5 @@
 package com.example.questionnaire;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -12,6 +10,8 @@ import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 import android.view.View;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashScreen extends AppCompatActivity {
 
@@ -59,5 +59,7 @@ public class SplashScreen extends AppCompatActivity {
         underlineString(boldItalicString(underlinedBoldItalic));
         return underlinedBoldItalic;
     }
+
+
 
 }

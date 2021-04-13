@@ -9,20 +9,27 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.questionnaire.utils.OnSwipeTouchListener;
+import com.example.questionnaire.model.Models;
+import com.example.questionnaire.utils.MyLinkedMap;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 import static com.example.questionnaire.QuestionsActivity.CUSTOMER;
 import static com.example.questionnaire.QuestionsActivity.MAID;
 import static com.example.questionnaire.QuestionsActivity.WORK_FORCE;
 import static com.example.questionnaire.SplashScreen.boldItalicString;
 import static com.example.questionnaire.SplashScreen.underlineString;
+import static com.example.questionnaire.model.Models.keyValueSep;
+import static com.example.questionnaire.model.Models.primary_secondary_sep;
+import static com.example.questionnaire.model.Models.sep1;
+import static com.example.questionnaire.model.Models.sep2;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,6 +72,108 @@ public class MainActivity extends AppCompatActivity {
         animateCustomer(customerButton);
         animateMaid(maidButton);
         styleTitle();
+
+        addDummyAnswer();
+    }
+
+    private void addDummyAnswer() {
+        Models.AnswerSessions answerSessions = new Models.AnswerSessions("123");
+        answerSessions.setPrimaryAnswer("answer 1");
+        answerSessions.setSecondaryAnswer("answer 2");
+
+        String[] keyList = new String[]{answerSessions.getQuestionId()};
+
+        String[] contentList = new String[]{answerSessions.getPrimaryAnswer().concat(primary_secondary_sep).concat(answerSessions.getSecondaryAnswer())};
+
+        MyLinkedMap<String,String> myMap = mapFromListWithDifferentKeys(keyList, contentList);
+        String s = getStringListFromMap(myMap);
+
+        System.out.println("map is " + myMap);
+        System.out.println("String map is "+ s);
+        System.out.println("mapString is "+ getMapFromString(s));
+    }
+
+    private MyLinkedMap<String, String> mapFromListWithDifferentKeys(String[] keyList, String[] list) {
+        MyLinkedMap<String, String> map = new MyLinkedMap<>();
+        if (list.length == 0 || keyList.length == 0) {
+            System.out.println("map is empty");
+            return map;
+        } else {
+            for (int i = 0; i <= list.length - 1; i++) {
+                map.put(keyList[i], list[i]);
+                System.out.println("key is " + keyList[i] + "map is " + list[i]);
+            }
+
+        }
+
+        return map;
+    }
+    private String getStringListFromMap(MyLinkedMap<String, String> map) {
+        String mapString = "";
+        if (map.isEmpty()) {
+            return mapString;
+
+        } else {
+            for (Map.Entry<String, String> pair : map.entrySet()) {
+                mapString = mapString.concat(sep1.concat(pair.getKey()).concat(keyValueSep).concat(pair.getValue()).concat(sep2));
+                System.out.println("entry "+mapString);
+            }
+        }
+
+        return mapString;
+    }
+    private MyLinkedMap<String, String> getMapFromString(String s) {
+        MyLinkedMap<String, String> map = new MyLinkedMap<>();
+        if (s == null) {
+            return map;
+        } else if (s.equals("")) {
+            return map;
+        } else {
+            String key = "";
+            String value = "";
+            String entry = "";
+
+            if (s.equals("")) {
+                return map;
+            } else { //if sep1 > start, if : > 1st word is key, if } > 2nd word is value ... end word
+                boolean keyFound = false;
+                for (int i = 0; i <= s.length() - 1; i++) {
+                    if (String.valueOf(s.charAt(i)).equals(sep1)) {
+                        System.out.println("Start of map");
+                    } else if (String.valueOf(s.charAt(i)).equals(sep2)) {
+                        value = entry;
+                        keyFound = false;
+                        map.put(key, value);
+                        entry = "";
+                        System.out.println("End : entry is " + key + keyValueSep + value);
+                    } else {
+
+                        if (String.valueOf(s.charAt(i)).equals(keyValueSep)) { //(key:value) //reached key
+
+                            if (!keyFound) {
+                                key = entry;
+                                entry = "";
+                                keyFound = true;
+                                System.out.println("key is " + key);
+                            }
+
+
+                        } else {
+                            entry = entry.concat(String.valueOf(s.charAt(i))); //add word
+                        }
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+    private MyLinkedMap<String,String> getAnswer1Answer2 (String s) {
+        MyLinkedMap<String,String> map = new MyLinkedMap<>();
+
+
+
+        return answers;
     }
 
     private void selectCleaner() {

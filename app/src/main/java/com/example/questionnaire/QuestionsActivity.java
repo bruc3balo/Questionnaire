@@ -67,18 +67,22 @@ public class QuestionsActivity extends AppCompatActivity {
 
 
     private void addDummyQuestions() {
+
         String q = "Is this a question?";
         String q1 = "Is this a secondary question";
 
         Models.QuestionClass questionClass = new Models.QuestionClass("1");
         questionClass.setQuestionType(OPEN_QUESTION);
         questionClass.setPrimaryQuestion(q);
+
         questionList.add(questionClass);
 
         Models.QuestionClass questionClass1 = new Models.QuestionClass("12");
         questionClass1.setQuestionType(CLOSED_QUESTION);
         questionList.add(questionClass1);
         questionClass1.setPrimaryQuestion(q);
+        questionClass1.setClosedAnswerNo("Not at all");
+        questionClass1.setClosedAnswerYes("Absolutely");
 
         Models.QuestionClass questionClass2 = new Models.QuestionClass("123");
         questionClass2.setQuestionType(RATING_QUESTION);
@@ -89,18 +93,18 @@ public class QuestionsActivity extends AppCompatActivity {
         questionClass3.setQuestionType(CONDITION_QUESTION_OPEN);
         questionList.add(questionClass3);
         questionClass3.setPrimaryQuestion(q);
-        questionClass3.setPrimaryAnswer("Not at all");
+        questionClass3.setClosedAnswerNo("Not at all");
         questionClass3.setSecondaryQuestion(q1);
-        questionClass3.setSecondaryAnswer("Absolutely");
+        questionClass3.setClosedAnswerYes("Absolutely");
 
         Models.QuestionClass questionClass4 = new Models.QuestionClass("12345");
         questionClass4.setQuestionType(CONDITION_QUESTION_CLOSED);
         questionList.add(questionClass4);
         questionClass4.setPrimaryQuestion(q);
-        questionClass4.setPrimaryAnswer("Not at all");
+        questionClass4.setClosedAnswerNo("Not at all");
         questionClass4.setSecondaryQuestion(q1);
-        questionClass4.setSecondaryAnswer("Absolutely");
-        questionClass4.setConditionalQuestion(Q2);
+        questionClass4.setClosedAnswerYes("Absolutely");
+
 
         Toast.makeText(this, ""+questionList.size(), Toast.LENGTH_SHORT).show();
 

@@ -9,19 +9,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static com.example.questionnaire.model.Models.AnswerSessions.ANSWER_DB;
 import static com.example.questionnaire.model.Models.QuestionClass.QUESTION_DB;
-import static com.example.questionnaire.model.Models.QuestionSession.*;
+import static com.example.questionnaire.model.Models.QuestionSession.QUESTION_SESSION_DB;
 
 
 public class Models {
 
-    static String HY = "-";
-    static String keyValueSep = ":";
-    static String sep1 = "{";
-    static String sep2 = "}";
-    static String primary_secondary_sep = "^";
+    public static String HY = "-";
+    public static String keyValueSep = ":";
+    public static String sep1 = "{";
+    public static String sep2 = "}";
+    public static String primary_secondary_sep = "^";
 
     @Entity(tableName = QUESTION_DB)
     public static class QuestionClass implements Serializable {
@@ -98,7 +99,6 @@ public class Models {
         public void setSecondaryQuestion(String secondaryQuestion) {
             this.secondaryQuestion = secondaryQuestion;
         }
-
 
 
         public String getCreatedAt() {
@@ -246,15 +246,25 @@ public class Models {
 
     }
 
-    static MyLinkedMap<String, String> mapFromListWithDifferentKeys(ArrayList<String> list, ArrayList<String> keyList) {
+    private MyLinkedMap<String, String> mapFromListWithDifferentKeys(ArrayList<String> keyList,ArrayList<String> list) {
         MyLinkedMap<String, String> map = new MyLinkedMap<>();
-        for (int i = 0; i <= list.size() - 1; i++) {
-            map.put(list.get(i), keyList.get(i));
-        }
+       if (list.isEmpty() || keyList.isEmpty()) {
+           System.out.println("map is empty");
+           return map;
+       } else {
+           for (int i = 0; i <= list.size() - 1; i++) {
+               map.put(keyList.get(i), list.get(i));
+               System.out.println("key is " + keyList.get(i) +"map is "+ list.get(i));
+           }
+
+       }
+
         return map;
     }
 
-    static MyLinkedMap<String, String> getMapFromString(String s) {
+
+
+    public static MyLinkedMap<String, String> getMapFromString(String s) {
         MyLinkedMap<String, String> map = new MyLinkedMap<>();
         if (s == null) {
             return map;

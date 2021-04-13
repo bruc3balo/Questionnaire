@@ -8,8 +8,8 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/ic_faq_"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MaterialComponents.NoActionBar">
-        <activity android:name=".EditQuestion"></activity>
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <activity android:name=".EditQuestion" />
         <activity android:name=".ViewQuestions" />
         <activity android:name=".AddNewQuestion" />
         <activity android:name=".QuestionsActivity" />
