@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Questionnaire</string>
+    <string name="questionnaire">Questionnaire</string>
+    <string name="choose_your_work_force">Choose your work force</string>
+    <string name="to_be_filled">-</string>
+    <string name="add_new_question">Add New Question</string>
+    <string name="save">Save</string>
+    <string name="maid">Maid</string>
+    <string name="customer">Customer</string>
+    <string name="view_questions">View Questions</string>
+    <string name="edit_question">Edit Question</string>
+    <string name="openQ">Open Question</string>
+    <string name="closedQ">Closed Question</string>
+    <string name="rating">Rating</string>
+    <string name="conditionalQO">Conditional Question Open</string>
+    <string name="question">Question</string>
+    <string name="option">Option</string>
+    <string name="question1">Question 1</string>
+    <string name="question2">Question 2</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="question_2">Question 2</string>
+    <string name="question_1">Question 1</string>
+    <string name="write_answer_here">Write answer here</string>
+    <string name="done">Done</string>
+    <string name="skip">Skip</string>
+    <string name="conditionalQC">Conditional Question Closed</string>
+</resources>

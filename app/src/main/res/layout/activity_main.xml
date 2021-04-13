@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainActivityLayout"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center|top">
+
+        <TextView
+            android:layout_weight="1"
+            android:id="@+id/mainTitleTv"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="15dp"
+            android:textStyle="bold"
+            android:fontFamily="serif"
+            android:textSize="35sp"
+            android:text="@string/to_be_filled"
+            android:gravity="center"
+            android:textColor="@color/black"/>
+
+        <ImageButton
+            android:id="@+id/viewQB"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_list"
+            android:tint="@color/skyBlue"
+            android:background="@android:color/transparent"/>
+
+        <ImageButton
+            android:id="@+id/addNewQB"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:src="@drawable/ic_add"
+            android:tint="@color/skyBlue"
+            android:background="@android:color/transparent"/>
+
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:background="@color/powderBlue"
+        android:orientation="horizontal"
+        android:layout_weight="1">
+
+
+        <ImageButton
+            android:id="@+id/maidButton"
+            android:layout_margin="5dp"
+            android:layout_width="0dp"
+            android:longClickable="true"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:elevation="12dp"
+            android:background="@drawable/gradient_list"
+            android:src="@drawable/ic_cleaning_lady"
+            android:scaleType="fitCenter"
+            android:layout_gravity="center"
+            tools:ignore="NestedWeights" />
+
+        <ImageButton
+            android:id="@+id/customerButton"
+            android:layout_margin="5dp"
+            android:elevation="12dp"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/gradient_list_cust"
+            android:src="@drawable/ic_user"
+            android:scaleType="fitCenter"
+            android:layout_gravity="center"/>
+
+    </LinearLayout>
+
+</LinearLayout>
