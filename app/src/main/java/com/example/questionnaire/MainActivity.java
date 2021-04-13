@@ -18,7 +18,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.questionnaire.model.Models;
 import com.example.questionnaire.utils.MyLinkedMap;
 
-import java.util.ArrayList;
 import java.util.Map;
 
 import static com.example.questionnaire.QuestionsActivity.CUSTOMER;
@@ -68,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
             new Handler(Looper.myLooper()).postDelayed(this::selectCustomer, 400);
         });
 
-
         animateCustomer(customerButton);
         animateMaid(maidButton);
         styleTitle();
@@ -85,12 +83,14 @@ public class MainActivity extends AppCompatActivity {
 
         String[] contentList = new String[]{answerSessions.getPrimaryAnswer().concat(primary_secondary_sep).concat(answerSessions.getSecondaryAnswer())};
 
-        MyLinkedMap<String,String> myMap = mapFromListWithDifferentKeys(keyList, contentList);
+        MyLinkedMap<String, String> myMap = mapFromListWithDifferentKeys(keyList, contentList);
         String s = getStringListFromMap(myMap);
+        MyLinkedMap<String,String> answerMap = getAnswer1Answer2(getMapFromString(s).getValue(0));
 
         System.out.println("map is " + myMap);
-        System.out.println("String map is "+ s);
-        System.out.println("mapString is "+ getMapFromString(s));
+        System.out.println("String map is " + s);
+        System.out.println("mapString is " + getMapFromString(s).getValue(0));
+        System.out.println("answer 1 is "+answerMap.getKey(0) +"  answer 2 is " +answerMap.getValue(0));
     }
 
     private MyLinkedMap<String, String> mapFromListWithDifferentKeys(String[] keyList, String[] list) {
@@ -103,11 +103,10 @@ public class MainActivity extends AppCompatActivity {
                 map.put(keyList[i], list[i]);
                 System.out.println("key is " + keyList[i] + "map is " + list[i]);
             }
-
         }
-
         return map;
     }
+
     private String getStringListFromMap(MyLinkedMap<String, String> map) {
         String mapString = "";
         if (map.isEmpty()) {
@@ -116,12 +115,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             for (Map.Entry<String, String> pair : map.entrySet()) {
                 mapString = mapString.concat(sep1.concat(pair.getKey()).concat(keyValueSep).concat(pair.getValue()).concat(sep2));
-                System.out.println("entry "+mapString);
+                System.out.println("entry " + mapString);
             }
         }
 
         return mapString;
     }
+
     private MyLinkedMap<String, String> getMapFromString(String s) {
         MyLinkedMap<String, String> map = new MyLinkedMap<>();
         if (s == null) {
@@ -168,12 +168,50 @@ public class MainActivity extends AppCompatActivity {
         return map;
     }
 
-    private MyLinkedMap<String,String> getAnswer1Answer2 (String s) {
-        MyLinkedMap<String,String> map = new MyLinkedMap<>();
 
 
+    private MyLinkedMap<String, String> getAnswer1Answer2(String s) {
+        MyLinkedMap<String, String> map = new MyLinkedMap<>();
+        //  answer 1^answer 2
+        //if ^ ans 1 is found, ans 2 looking... if } ans 2 is found
 
-        return answers;
+
+        if (s == null || s.equals("")) {
+            return map;
+        } else {
+            String ans1 = "";
+            String ans2 = "";
+            String entry = "";
+
+            if (s.equals("")) {
+                return map;
+            } else {
+                boolean ans1found = false;
+
+                for (int i = 0; i <= s.length() - 1; i++) {
+                    if (String.valueOf(s.charAt(i)).equals(primary_secondary_sep)) { //answer 1 is found
+                        ans1found = true;
+                        ans1 = entry;
+                        entry = "";
+                    } else {
+                        entry = entry.concat(String.valueOf(s.charAt(i)));
+                        System.out.println("answer characters "+entry);
+
+                        if (ans1found) {
+                            if (i == s.length() - 1) { // end of ans 2
+                                ans1found = true;
+                                ans2 = entry;
+                                map.put(ans1, ans2);
+                            }
+                        }
+
+                    }
+                }
+
+            }
+        }
+
+        return map;
     }
 
     private void selectCleaner() {
