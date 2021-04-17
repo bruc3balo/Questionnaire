@@ -3,22 +3,19 @@ package com.example.questionnaire.adapter;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.questionnaire.R;
 import com.example.questionnaire.model.Models;
+import com.example.questionnaire.utils.MyLinkedMap;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -30,20 +27,23 @@ import static com.example.questionnaire.adapter.QuestionAdapter.CONDITION_VT_C;
 import static com.example.questionnaire.adapter.QuestionAdapter.OPEN_VT;
 import static com.example.questionnaire.adapter.QuestionAdapter.RATING_VT;
 import static com.example.questionnaire.adapter.QuestionAdapter.checkIfNull;
+import static com.example.questionnaire.model.Models.PRIMARY;
 import static com.example.questionnaire.model.Models.QuestionClass.CLOSED_QUESTION;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_CLOSED;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_OPEN;
 import static com.example.questionnaire.model.Models.QuestionClass.OPEN_QUESTION;
 import static com.example.questionnaire.model.Models.QuestionClass.RATING_QUESTION;
+import static com.example.questionnaire.model.Models.getAnswer1Answer2;
+import static com.example.questionnaire.model.Models.getMapFromString;
 
-public class QuestionListRv extends RecyclerView.Adapter<QuestionListRv.ViewHolder> {
+public class AnswerListRv extends RecyclerView.Adapter<AnswerListRv.ViewHolder> {
 
     private final ArrayList<Models.QuestionClass> questionList;
     private ItemClickListener mClickListener;
     private Context mContext;
     private int viewTypeI;
 
-    public QuestionListRv(Context mContext, ArrayList<Models.QuestionClass> list) {
+    public AnswerListRv(Context mContext, ArrayList<Models.QuestionClass> list) {
         this.questionList = list;
         this.mContext = mContext;
     }
@@ -81,98 +81,7 @@ public class QuestionListRv extends RecyclerView.Adapter<QuestionListRv.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Models.QuestionClass q = questionList.get(position);
 
-        switch (q.getQuestionType()) {
-            default:
-                break;
-
-            case OPEN_QUESTION:
-
-                break;
-
-            case CLOSED_QUESTION:
-                if (!checkIfNull(q.getClosedAnswerYes())) {
-                    holder.yesB.setText(q.getClosedAnswerYes());
-                } else {
-                    holder.yesB.setText("Yes");
-                }
-
-                holder.yesB.setOnClickListener(v -> {
-                    holder.yesB.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
-                    holder.yesB.setTextColor(Color.WHITE);
-                    holder.noB.setTextColor(Color.BLACK);
-                    holder.noB.setBackgroundTintList(null);
-
-                });
-                if (!checkIfNull(q.getClosedAnswerNo())) {
-                    holder.noB.setText(q.getClosedAnswerNo());
-                } else {
-                    holder.noB.setText("No");
-                }
-                holder.noB.setOnClickListener(v -> {
-                    holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
-                    holder.noB.setTextColor(Color.WHITE);
-                    holder.yesB.setTextColor(Color.BLACK);
-                    holder.yesB.setBackgroundTintList(null);
-                });
-                break;
-
-            case RATING_QUESTION:
-                holder.ratingBar.setRating(5);
-                holder.ratingBar.setEnabled(false);
-                break;
-
-            case CONDITION_QUESTION_OPEN:
-
-                if (!checkIfNull(q.getSecondaryQuestion())) {
-                    holder.questionTv2.setText(q.getSecondaryQuestion());
-                    holder.questionTv2.setFreezesText(true);
-                }
-
-                break;
-
-            case CONDITION_QUESTION_CLOSED:
-
-                if (!checkIfNull(q.getSecondaryQuestion())) {
-                    holder.questionTv2.setText(q.getSecondaryQuestion());
-                    holder.questionTv2.setFreezesText(true);
-                }
-
-                holder.questionTv2.setVisibility(View.GONE);
-
-
-                if (!checkIfNull(q.getClosedAnswerYes())) {
-                    holder.yesB.setText(q.getClosedAnswerYes());
-                    holder.yesB.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            holder.yesB.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
-                            holder.yesB.setTextColor(Color.WHITE);
-                            holder.noB.setTextColor(Color.BLACK);
-                            holder.noB.setBackgroundTintList(null);
-                            holder.questionTv2.setVisibility(View.VISIBLE);
-
-                        }
-                    });
-                }
-
-                if (!checkIfNull(q.getClosedAnswerNo())) {
-                    holder.noB.setText(q.getClosedAnswerNo());
-                    holder.noB.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
-                            holder.noB.setTextColor(Color.WHITE);
-                            holder.yesB.setTextColor(Color.BLACK);
-                            holder.yesB.setBackgroundTintList(null);
-
-                            holder.questionTv2.setVisibility(View.GONE);
-                        }
-                    });
-                }
-
-
-                break;
-        }
+        setAnswers(position,holder);
 
         if (!checkIfNull(q.getPrimaryQuestion())) {
             holder.questionTv.setText(q.getPrimaryQuestion());
@@ -180,6 +89,106 @@ public class QuestionListRv extends RecyclerView.Adapter<QuestionListRv.ViewHold
         }
     }
 
+    private void setAnswers(int position, ViewHolder holder) {
+        switch (questionList.get(position).getQuestionType()) {
+            default:
+                break;
+
+            case OPEN_QUESTION:
+                holder.answerField.setText(questionList.get(position).getPrimaryAnswer());
+
+                break;
+
+            case CLOSED_QUESTION:
+                if (!checkIfNull(questionList.get(position).getClosedAnswerYes())) {
+                    holder.yesB.setText(questionList.get(position).getClosedAnswerYes());
+                    System.out.println("Primary : "+questionList.get(position).getPrimaryAnswer());
+                } else {
+                    holder.yesB.setText("Yes");
+                }
+
+
+                if (!checkIfNull(questionList.get(position).getClosedAnswerNo())) {
+                    holder.noB.setText(questionList.get(position).getClosedAnswerNo());
+                    System.out.println("Secondary : "+questionList.get(position).getSecondaryAnswer());
+
+                } else {
+                    holder.noB.setText("No");
+                }
+
+                if (Models.getRightAnswer(questionList.get(position).getClosedAnswerYes(),questionList.get(position).getClosedAnswerNo(),questionList.get(position).getPrimaryAnswer()).equals(PRIMARY)) {
+                    holder.yesB.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
+                    holder.yesB.setTextColor(Color.WHITE);
+                } else {
+                    holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                    holder.noB.setTextColor(Color.BLACK);
+                }
+
+                break;
+
+            case RATING_QUESTION:
+                holder.ratingBar.setRating(Float.parseFloat(questionList.get(position).getPrimaryAnswer()));
+                holder.ratingBar.setEnabled(false);
+                break;
+
+            case CONDITION_QUESTION_OPEN:
+
+                if (!checkIfNull(questionList.get(position).getSecondaryQuestion())) {
+                    holder.questionTv2.setText(questionList.get(position).getSecondaryQuestion());
+                    holder.questionTv2.setFreezesText(true);
+                }
+
+                if (!checkIfNull(questionList.get(position).getPrimaryAnswer())) {
+                    holder.answerField.setText(questionList.get(position).getPrimaryAnswer());
+                }
+
+                if (!checkIfNull(questionList.get(position).getSecondaryAnswer())) {
+                    holder.answerField2.setText(questionList.get(position).getSecondaryAnswer());
+                }
+
+
+
+                break;
+
+            case CONDITION_QUESTION_CLOSED:
+
+                if (!checkIfNull(questionList.get(position).getSecondaryQuestion())) {
+                    holder.questionTv2.setText(questionList.get(position).getSecondaryQuestion());
+                    holder.questionTv2.setFreezesText(true);
+                }
+
+
+
+                if (!checkIfNull(questionList.get(position).getSecondaryAnswer())) {
+                    holder.answerField2.setText(questionList.get(position).getSecondaryAnswer());
+                }
+
+                holder.questionTv2.setVisibility(View.GONE);
+
+
+                if (!checkIfNull(questionList.get(position).getClosedAnswerYes())) {
+                    holder.yesB.setText(questionList.get(position).getClosedAnswerYes());
+                }
+
+                if (!checkIfNull(questionList.get(position).getClosedAnswerNo())) {
+                    holder.noB.setText(questionList.get(position).getClosedAnswerNo());
+                }
+
+                if (Models.getRightAnswer(questionList.get(position).getClosedAnswerYes(),questionList.get(position).getClosedAnswerNo(),questionList.get(position).getPrimaryAnswer()).equals(PRIMARY)) {
+                    holder.yesB.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
+                    holder.yesB.setTextColor(Color.WHITE);
+                } else {
+                    holder.noB.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+                    holder.noB.setTextColor(Color.BLACK);
+                }
+
+                break;
+        }
+    }
+
+    public static boolean notEmpty (String s) {
+        return !s.equals("");
+    }
 
     // total number of rows
     @Override
@@ -218,11 +227,15 @@ public class QuestionListRv extends RecyclerView.Adapter<QuestionListRv.ViewHold
         return viewTypeI;
     }
 
+    private MyLinkedMap<String,String> addAnswersToQuestions (String answerString) {
+        return getAnswer1Answer2(getMapFromString(answerString).getValue(0));
+    }
+
     // stores and recycles views as they are scrolled off screen
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         Button noB, yesB;
         TextView questionTv, questionTv2;
-
+        TextView answerField,answerField2;
         RatingBar ratingBar;
 
         ViewHolder(View itemView) {
@@ -233,6 +246,9 @@ public class QuestionListRv extends RecyclerView.Adapter<QuestionListRv.ViewHold
             noB = itemView.findViewById(R.id.noButton);
             yesB = itemView.findViewById(R.id.yesButton);
             ratingBar = itemView.findViewById(R.id.ratingBar);
+
+            answerField = itemView.findViewById(R.id.answerField);
+            answerField2 = itemView.findViewById(R.id.answerField2);
             itemView.setOnClickListener(this);
         }
 

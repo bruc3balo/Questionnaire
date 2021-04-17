@@ -1,10 +1,15 @@
 package com.example.questionnaire.adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,14 +25,25 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.questionnaire.R;
 import com.example.questionnaire.model.Models;
+import com.example.questionnaire.utils.MyLinkedMap;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 
+import static com.example.questionnaire.QuestionsActivity.MAID;
+import static com.example.questionnaire.model.Models.HY;
 import static com.example.questionnaire.model.Models.QuestionClass.CLOSED_QUESTION;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_CLOSED;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_OPEN;
 import static com.example.questionnaire.model.Models.QuestionClass.OPEN_QUESTION;
 import static com.example.questionnaire.model.Models.QuestionClass.RATING_QUESTION;
+import static com.example.questionnaire.model.Models.QuestionSession.QUESTION_SESSION_DB;
+import static com.example.questionnaire.model.Models.WORK_CUSTOMER;
+import static com.example.questionnaire.model.Models.WORK_MAID;
+import static com.example.questionnaire.model.Models.getSessionId;
+import static com.example.questionnaire.model.Models.getStringListFromMap;
+import static com.example.questionnaire.model.Models.keyValueSep;
+import static com.example.questionnaire.model.Models.primary_secondary_sep;
 
 
 public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.SliderViewHolder> {
@@ -38,18 +54,30 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
     private int current_position;
     private SliderViewHolder sliderViewHolder;
     private int viewTypeI;
-    private ViewPager2 viewPager2;
+    private final ViewPager2 viewPager2;
 
     public static final int CLOSED_VT = 0;
     public static final int OPEN_VT = 1;
     public static final int RATING_VT = 2;
     public static final int CONDITION_VT = 3;
     public static final int CONDITION_VT_C = 4;
+    public static final String SKIPPED = HY;
 
-    public QuestionAdapter(Context context, ArrayList<Models.QuestionClass> questionList, ViewPager2 viewPager2) {
+    private final MyLinkedMap<String, String> myAnswerSessionMap = new MyLinkedMap<>();
+    Models.QuestionSession questionSession = new Models.QuestionSession("");
+    private final String name;
+    private final String age;
+    private final Activity activity;
+    int workForceType;
+
+    public QuestionAdapter(Context context, ArrayList<Models.QuestionClass> questionList, ViewPager2 viewPager2, String name, String age, int workForceType, Activity activity) {
         this.context = context;
         this.questionList = questionList;
         this.viewPager2 = viewPager2;
+        this.name = name;
+        this.workForceType = workForceType;
+        this.age = age;
+        this.activity = activity;
     }
 
     @NonNull
@@ -92,7 +120,13 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                 break;
 
             case OPEN_QUESTION:
-
+                holder.doneB.setOnClickListener(v -> {
+                    if (holder.answerField.getText().toString().isEmpty()) {
+                        holder.answerField.setError("Error message");
+                    } else {
+                        updateQuestion(questionList.get(position), holder.answerField.getText().toString(), SKIPPED);
+                    }
+                });
                 break;
 
             case CLOSED_QUESTION:
@@ -107,6 +141,8 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                     holder.yesB.setTextColor(Color.WHITE);
                     holder.noB.setTextColor(Color.BLACK);
                     holder.noB.setBackgroundTintList(null);
+                    holder.doneB.setOnClickListener(v12 -> updateQuestion(questionList.get(position), q.getClosedAnswerYes(), SKIPPED));
+
                 });
                 if (!checkIfNull(q.getClosedAnswerNo())) {
                     holder.noB.setText(q.getClosedAnswerNo());
@@ -118,17 +154,47 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                     holder.noB.setTextColor(Color.WHITE);
                     holder.yesB.setTextColor(Color.BLACK);
                     holder.yesB.setBackgroundTintList(null);
+                    holder.doneB.setOnClickListener(v12 -> updateQuestion(questionList.get(position), q.getClosedAnswerNo(), SKIPPED));
                 });
                 break;
 
             case RATING_QUESTION:
-                holder.ratingBar.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> Toast.makeText(context, String.valueOf(rating), Toast.LENGTH_SHORT).show());
+                float[] myRating = new float[]{11};
+                holder.ratingBar.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
+                    myRating[0] = rating;
+                    Toast.makeText(context, String.valueOf(rating), Toast.LENGTH_SHORT).show();
+                });
+                holder.doneB.setOnClickListener(v -> {
+                    if (myRating[0] == 11) {
+                        holder.ratingBar.setBackgroundColor(Color.RED);
+                        Toast.makeText(context, "No rating selected", Toast.LENGTH_SHORT).show();
+                        new Handler(Looper.myLooper()).postDelayed(() -> holder.ratingBar.setBackgroundColor(Color.TRANSPARENT), 300);
+                    } else {
+                        updateQuestion(questionList.get(position), String.valueOf(myRating[0]), SKIPPED);
+                    }
+                });
                 break;
 
             case CONDITION_QUESTION_OPEN:
+
                 if (!checkIfNull(q.getSecondaryQuestion())) {
                     holder.questionTv2.setText(q.getSecondaryQuestion());
                 }
+
+                holder.doneB.setOnClickListener(v1 -> {
+                    if (holder.answerField.getText().toString().isEmpty()) {
+                        holder.answerField.setError("Answer is wrong");
+                        holder.answerField.requestFocus();
+                    } else {
+                        if (holder.answerField2.getText().toString().isEmpty()) {
+                            updateQuestion(questionList.get(position), holder.answerField.getText().toString(), SKIPPED);
+                        } else {
+                            updateQuestion(questionList.get(position), holder.answerField.getText().toString(), holder.answerField2.getText().toString());
+                        }
+                    }
+                });
+
+
                 break;
 
             case CONDITION_QUESTION_CLOSED:
@@ -146,8 +212,6 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                 holder.answerField2.setVisibility(View.GONE);
 
 
-
-
                 if (!checkIfNull(q.getClosedAnswerYes())) {
                     holder.yesB.setText(q.getClosedAnswerYes());
                     holder.yesB.setOnClickListener(new View.OnClickListener() {
@@ -157,9 +221,10 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                             holder.yesB.setTextColor(Color.WHITE);
                             holder.noB.setTextColor(Color.BLACK);
                             holder.noB.setBackgroundTintList(null);
-
                             holder.questionTv2.setVisibility(View.VISIBLE);
                             holder.answerField2.setVisibility(View.VISIBLE);
+                            holder.doneB.setOnClickListener(v1 -> updateQuestion(questionList.get(position), q.getClosedAnswerYes(), holder.answerField2.getText().toString()));
+
                         }
                     });
                 }
@@ -174,33 +239,73 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                             holder.yesB.setTextColor(Color.BLACK);
                             holder.yesB.setBackgroundTintList(null);
 
-
+                            holder.doneB.setOnClickListener(v1 -> updateQuestion(questionList.get(position), q.getClosedAnswerNo(), SKIPPED));
                             holder.questionTv2.setVisibility(View.GONE);
                             holder.answerField2.setVisibility(View.GONE);
                         }
                     });
                 }
+
+
                 break;
         }
 
-        holder.skipButton.setOnClickListener(v -> skipDialog());
-        holder.doneB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                moveToNextQuestion();
-            }
-        });
+        holder.skipButton.setOnClickListener(v -> skipDialog(position));
+
         if (!checkIfNull(q.getPrimaryQuestion())) {
             holder.questionTv.setText(q.getPrimaryQuestion());
+            holder.questionTv.addTextChangedListener(characterWatcher);
         }
+
+       if (!checkIfNull(holder.questionTv2)) {
+           holder.questionTv2.addTextChangedListener(characterWatcher);
+       }
+
     }
 
 
-    private void updateQuestion() {
+    private void updateQuestion(Models.QuestionClass questionClass, String primary, String secondary) {
+        String content = primary.concat(primary_secondary_sep).concat(secondary);
+        if (primary != null) {
+            questionClass.setPrimaryAnswer(primary);
+        } else {
+            questionClass.setPrimaryAnswer("");
+        }
+
+        if (primary != null) {
+            questionClass.setSecondaryAnswer(primary);
+        } else {
+            questionClass.setSecondaryAnswer("");
+        }
+
+        myAnswerSessionMap.put(questionClass.getQuestionId(), content);
+        moveToNextQuestion();
+    }
+
+    private void finalizeSession() {
+        String s = getStringListFromMap(myAnswerSessionMap);
+
+        questionSession.setSessionId(getSessionId(workForceType, name));
+        questionSession.setAnswerListMap(s);
+        questionSession.setCreatedAt(Models.fullSecondDateTime);
+
+        questionSession.setLastModified(Models.fullSecondDateTime);
+        questionSession.setWorkForceAgentName(name);
+        questionSession.setWorkForceAgentAge(age);
+
+
+        if (workForceType == MAID) {
+            questionSession.setWorkForceType(WORK_MAID);
+        } else {
+            questionSession.setWorkForceType(WORK_CUSTOMER);
+        }
+
+        saveSession(questionSession);
+
     }
 
     @SuppressLint("SetTextI18n")
-    private void skipDialog() {
+    private void skipDialog(int pos) {
         Dialog d = new Dialog(context);
         d.setContentView(R.layout.skip_question_dialog);
         d.show();
@@ -210,16 +315,18 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
         Button yes = d.findViewById(R.id.yesButton), no = d.findViewById(R.id.noButton);
         no.setOnClickListener(v -> d.dismiss());
         yes.setOnClickListener(v -> {
-            skipQuestion();
+            updateQuestion(questionList.get(pos), SKIPPED, SKIPPED);
             d.dismiss();
         });
     }
+
 
     private void moveToNextQuestion() {
         if (viewPager2.getCurrentItem() < questionList.size() - 1) {
             viewPager2.setCurrentItem(viewPager2.getCurrentItem() + 1);
         } else if (viewPager2.getCurrentItem() == questionList.size() - 1) {
             Toast.makeText(context, "Last question", Toast.LENGTH_SHORT).show();
+            finalizeSession();
         }
     }
 
@@ -227,11 +334,49 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
         moveToNextQuestion();
     }
 
+    private void saveSession(Models.QuestionSession session) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection(QUESTION_SESSION_DB).document(session.getSessionId()).set(session).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(context, "Session saved", Toast.LENGTH_SHORT).show();
+                activity.finish();
+            } else {
+                Toast.makeText(context, "Failed to finalize Session", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 
     @Override
     public int getItemCount() {
         return questionList.size();
     }
+
+    public static TextWatcher characterWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            String content = s.toString();
+            for (int i = 0; i <= content.length() - 1; i++) {
+                if (String.valueOf(s.charAt(i)).equals(keyValueSep)) {
+                    content = String.valueOf(s.charAt(i)).replace(keyValueSep, "");
+                } else if (String.valueOf(s.charAt(i)).equals(primary_secondary_sep)) {
+                    content = String.valueOf(s.charAt(i)).replace(primary_secondary_sep, "");
+                }
+            }
+
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    };
 
     public class SliderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 

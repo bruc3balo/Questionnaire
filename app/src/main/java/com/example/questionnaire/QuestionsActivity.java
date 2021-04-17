@@ -1,28 +1,31 @@
 package com.example.questionnaire;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.graphics.Color;
+import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Button;
-import android.widget.RatingBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager2.widget.CompositePageTransformer;
 import androidx.viewpager2.widget.MarginPageTransformer;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.questionnaire.adapter.QuestionAdapter;
 import com.example.questionnaire.model.Models;
+import com.example.questionnaire.questionDb.QuestionsViewModel;
 
 import java.util.ArrayList;
 
 import me.relex.circleindicator.CircleIndicator3;
 
-import static com.example.questionnaire.AddNewQuestion.Q1;
-import static com.example.questionnaire.AddNewQuestion.Q2;
 import static com.example.questionnaire.model.Models.QuestionClass.CLOSED_QUESTION;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_CLOSED;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_OPEN;
@@ -40,28 +43,156 @@ public class QuestionsActivity extends AppCompatActivity {
     private int current_position;
     private QuestionAdapter questionAdapter;
     private final ArrayList<Models.QuestionClass> questionList = new ArrayList<>();
+    private Models.QuestionSession questionSession;
+    private String nameOfCandidate = "";
+    private String age = "";
+    private Toolbar showQtb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_questions);
 
-        Toolbar showQtb = findViewById(R.id.showQtb);
+        showQtb = findViewById(R.id.showQtb);
         setSupportActionBar(showQtb);
         showQtb.setNavigationOnClickListener(v -> cancelQuestionAsking());
 
         if (getIntent().getExtras() != null) {
             type = getIntent().getExtras().getInt(WORK_FORCE);
-            decideQuestionnaireType(type, showQtb);
         }
+        showWelcomeDialog();
 
-        setUpViewPager(showQtb);
 
-
+        //getAllOnlineQuestions();
 
     }
 
+    private void showWelcomeDialog() {
+        Dialog d = new Dialog(this);
+        d.setContentView(R.layout.info_layout);
+        TextView infoTv = d.findViewById(R.id.infoTv);
+        Button dismissButton = d.findViewById(R.id.dismissButton);
+        d.show();
+        infoTv.setText("Welcome to this ".concat(getResources().getString(R.string.questionnaire)).concat("."));
+        dismissButton.setOnClickListener(v -> d.dismiss());
+        d.setOnDismissListener(dialog -> enterNameDialog());
+    }
 
+    private void enterNameDialog() {
+        Dialog d = new Dialog(this);
+        d.setContentView(R.layout.enter_single_value_layout);
+        TextView descriptionDialog = d.findViewById(R.id.descriptionDialog);
+        TextView valueField = d.findViewById(R.id.valueField);
+        Button submitButton = d.findViewById(R.id.submitButton);
+
+        d.show();
+
+        descriptionDialog.setText("Enter name of candidate ...");
+        descriptionDialog.setInputType(InputType.TYPE_CLASS_TEXT);
+        submitButton.setOnClickListener(v -> {
+            if (valueField.getText().toString().isEmpty()) {
+                valueField.setError("Name cannot be empty");
+                valueField.requestFocus();
+            } else {
+                nameOfCandidate = valueField.getText().toString();
+                d.dismiss();
+
+            }
+        });
+        d.setOnDismissListener(dialog -> {
+            if (nameOfCandidate.equals("")) {
+                Toast.makeText(QuestionsActivity.this, "Enter name to continue", Toast.LENGTH_SHORT).show();
+                enterNameDialog();
+            } else {
+                enterAgeDialog(nameOfCandidate);
+            }
+        });
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void enterAgeDialog(String nameOfCandidate) {
+        Dialog d = new Dialog(this);
+        d.setContentView(R.layout.enter_single_value_layout);
+        TextView descriptionDialog = d.findViewById(R.id.descriptionDialog);
+        TextView valueField = d.findViewById(R.id.valueField);
+        Button submitButton = d.findViewById(R.id.submitButton);
+
+        d.show();
+
+        descriptionDialog.setText("Enter age of candidate " + nameOfCandidate);
+        descriptionDialog.setRawInputType(Configuration.KEYBOARD_12KEY);
+        submitButton.setOnClickListener(v -> {
+            if (valueField.getText().toString().isEmpty()) {
+                valueField.setError("Age cannot be empty");
+                valueField.requestFocus();
+            } else {
+                age = valueField.getText().toString();
+                d.dismiss();
+            }
+        });
+
+        d.setOnDismissListener(dialog -> {
+            if (age.equals("")) {
+                Toast.makeText(QuestionsActivity.this, "Must enter age to continue", Toast.LENGTH_SHORT).show();
+                enterAgeDialog(nameOfCandidate);
+            } else {
+                decideQuestionnaireType(type, showQtb);
+            }
+        });
+    }
+
+    private void getAllOnlineQuestions() {
+        QuestionsViewModel questionsViewModel = new ViewModelProvider(this).get(QuestionsViewModel.class);
+        questionsViewModel.getQuestionsLiveData().observe(this, questionClasses -> {
+            if (questionClasses.size() == 0) {
+                Toast.makeText(this, "Online questions are empty", Toast.LENGTH_SHORT).show();
+            } else {
+                questionList.addAll(questionClasses);
+                questionAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void getAllMaidQuestions() {
+        QuestionsViewModel questionsViewModel = new ViewModelProvider(this).get(QuestionsViewModel.class);
+        questionsViewModel.getMaidQuestionsLiveData().observe(this, questionClasses -> {
+            if (questionClasses.size() == 0) {
+                String empty = "Online maid questions are empty";
+                Toast.makeText(this, empty, Toast.LENGTH_SHORT).show();
+                showEmptyListDialog(empty);
+            } else {
+                questionList.clear();
+                questionList.addAll(questionClasses);
+                questionAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void getAllCustomerQuestions() {
+        QuestionsViewModel questionsViewModel = new ViewModelProvider(this).get(QuestionsViewModel.class);
+        questionsViewModel.getCustomerQuestionsLiveData().observe(this, questionClasses -> {
+            if (questionClasses.size() == 0) {
+                String empty = "Online customer questions are empty";
+                Toast.makeText(this, empty, Toast.LENGTH_SHORT).show();
+                showEmptyListDialog(empty);
+            } else {
+                questionList.clear();
+                questionList.addAll(questionClasses);
+                questionAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void showEmptyListDialog(String s) {
+        Dialog d = new Dialog(this);
+        d.setContentView(R.layout.info_layout);
+        TextView infoTv = d.findViewById(R.id.infoTv);
+        infoTv.setText(s);
+        d.show();
+        Button dismiss = d.findViewById(R.id.dismissButton);
+        dismiss.setOnClickListener(v -> d.dismiss());
+        d.setOnDismissListener(dialog -> finish());
+    }
 
 
 
@@ -106,18 +237,22 @@ public class QuestionsActivity extends AppCompatActivity {
         questionClass4.setClosedAnswerYes("Absolutely");
 
 
-        Toast.makeText(this, ""+questionList.size(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "" + questionList.size(), Toast.LENGTH_SHORT).show();
 
     }
 
     private void decideQuestionnaireType(int n, Toolbar toolbar) {
         if (n == MAID) {
             startMaidQuestions(toolbar);
+            getAllMaidQuestions();
         } else if (n == CUSTOMER) {
             startCustomerQuestions(toolbar);
+            getAllCustomerQuestions();
         } else {
             failedToGetType();
         }
+
+        setUpViewPager(showQtb);
     }
 
     private void failedToGetType() {
@@ -138,7 +273,7 @@ public class QuestionsActivity extends AppCompatActivity {
     }
 
     private void setUpViewPager(Toolbar toolbar) {
-        addDummyQuestions();
+        //addDummyQuestions();
         ViewPager2 questionViewPager = findViewById(R.id.questionViewPager);
         questionViewPager.setUserInputEnabled(false);
 
@@ -147,9 +282,10 @@ public class QuestionsActivity extends AppCompatActivity {
         questionViewPager.setClipChildren(false);
         questionViewPager.setOffscreenPageLimit(3);
 
-        questionAdapter =  new QuestionAdapter(this, questionList,questionViewPager);
+        questionAdapter = new QuestionAdapter(this, questionList, questionViewPager, nameOfCandidate, age, type, QuestionsActivity.this);
         questionViewPager.setAdapter(questionAdapter);
-        questionAdapter.setClickListener((view, position) -> {});
+        questionAdapter.setClickListener((view, position) -> {
+        });
 
 
         CompositePageTransformer compositePageTransformer = new CompositePageTransformer();

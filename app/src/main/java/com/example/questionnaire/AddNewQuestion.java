@@ -1,6 +1,7 @@
 package com.example.questionnaire;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.view.View;
@@ -8,15 +9,21 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.questionnaire.model.Models;
 import com.example.questionnaire.questionDb.QuestionRepository;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.example.questionnaire.QuestionsActivity.CUSTOMER;
 import static com.example.questionnaire.QuestionsActivity.MAID;
@@ -24,19 +31,24 @@ import static com.example.questionnaire.model.Models.QuestionClass.CLOSED_QUESTI
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_CLOSED;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_OPEN;
 import static com.example.questionnaire.model.Models.QuestionClass.OPEN_QUESTION;
+import static com.example.questionnaire.model.Models.QuestionClass.QUESTION_DB;
 import static com.example.questionnaire.model.Models.QuestionClass.RATING_QUESTION;
+import static com.example.questionnaire.model.Models.fullDateTime;
+import static com.example.questionnaire.model.Models.getQuestionId;
 
 
 public class AddNewQuestion extends AppCompatActivity {
 
     private boolean backPressed;
-    private int type;
+    private int workForceType;
     private String questionType = "";
     private LinearLayout conditionalQuestionLayoutOpen, closedQuestionLayout, openQuestionLayout, conditionalQuestionLayoutClosed;
 
     public static final String Q1 = "q1";
     public static final String Q2 = "q2";
-    private EditText questionFieldOpen, questionFieldClosed, option1Field, option2Field, questionFieldCondition1, questionFieldCondition2, questionFieldCondition1Closed, questionFieldCondition2Closed,option1FieldClosed,option2FieldClosed;
+    private EditText questionFieldOpen, questionFieldClosed, option1Field, option2Field, questionFieldCondition1, questionFieldCondition2, questionFieldCondition1Closed, questionFieldCondition2Closed, option1FieldClosed, option2FieldClosed;
+    private Models.QuestionClass question;
+
 
     @SuppressLint("NonConstantResourceId")
     @Override
@@ -115,17 +127,16 @@ public class AddNewQuestion extends AppCompatActivity {
         option2FieldClosed = findViewById(R.id.option2FieldClosed);
 
         Button saveQ = findViewById(R.id.saveQ);
-        saveQ.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (validateForm(questionType)) {
-                    Toast.makeText(AddNewQuestion.this, "saved", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(AddNewQuestion.this, "check details", Toast.LENGTH_SHORT).show();
-                }
+        saveQ.setOnClickListener(v -> {
+            if (validateForm(questionType)) {
+                saveQ.setEnabled(false);
+               // saveQuestion(question);
+                saveOnlineQuestion(question);
+            } else {
+                Toast.makeText(AddNewQuestion.this, "check details", Toast.LENGTH_SHORT).show();
             }
         });
-
+        setMaidMode(addQtb);
     }
 
 
@@ -162,7 +173,7 @@ public class AddNewQuestion extends AppCompatActivity {
         toolbar.setBackground(getResources().getDrawable(R.drawable.gradient_list));
         setAnimatedBg(toolbar);
         toolbar.setSubtitle(R.string.maid);
-        type = MAID;
+        workForceType = MAID;
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -170,7 +181,7 @@ public class AddNewQuestion extends AppCompatActivity {
         toolbar.setBackground(getResources().getDrawable(R.drawable.gradient_list_cust));
         setAnimatedBg(toolbar);
         toolbar.setSubtitle(R.string.customer);
-        type = CUSTOMER;
+        workForceType = CUSTOMER;
     }
 
     private void setAnimatedBg(Toolbar toolbar) {
@@ -182,12 +193,23 @@ public class AddNewQuestion extends AppCompatActivity {
         getWindow().setStatusBarColor(getResources().getColor(R.color.primary));
     }
 
-    private void cancelQuestionMaking() {
-
-    }
 
     private void addToDrafts() {
-
+        Dialog d = new Dialog(this);
+        d.setContentView(R.layout.skip_question_dialog);
+        d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        TextView skipInfo = d.findViewById(R.id.deleteInfoTv);
+        skipInfo.setText("Do you want to add this question");
+        Button yes = d.findViewById(R.id.yesButton), no = d.findViewById(R.id.noButton);
+        no.setOnClickListener(v -> {
+            d.dismiss();
+            finishActivity();
+        });
+        yes.setOnClickListener(v -> {
+            saveQuestion(question);
+            d.dismiss();
+        });
     }
 
     private boolean validateForm(String type) {
@@ -197,12 +219,48 @@ public class AddNewQuestion extends AppCompatActivity {
                 break;
 
             case OPEN_QUESTION:
+                if (questionFieldOpen.getText().toString().isEmpty()) {
+                    questionFieldOpen.setError("Empty");
+                    questionFieldOpen.requestFocus();
+                } else {
+                    question = new Models.QuestionClass(getQuestionId(workForceType));
 
+                    question.setPrimaryQuestion(questionFieldOpen.getText().toString());
+
+                    question.setClosedAnswerYes("");
+                    question.setClosedAnswerNo("");
+
+                    question.setCreatedAt(fullDateTime);
+                    question.setLastModifiedAt(fullDateTime);
+
+                    question.setWorkForceType(workForceType);
+                    question.setQuestionType(OPEN_QUESTION);
+
+                    question.setSecondaryQuestion("");
+
+                    valid = true;
+                }
+                break;
             case RATING_QUESTION:
                 if (questionFieldOpen.getText().toString().isEmpty()) {
                     questionFieldOpen.setError("Empty");
                     questionFieldOpen.requestFocus();
                 } else {
+                    question = new Models.QuestionClass(getQuestionId(workForceType));
+
+                    question.setPrimaryQuestion(questionFieldOpen.getText().toString());
+
+                    question.setClosedAnswerYes("");
+                    question.setClosedAnswerNo("");
+
+                    question.setCreatedAt(fullDateTime);
+                    question.setLastModifiedAt(fullDateTime);
+
+                    question.setWorkForceType(workForceType);
+                    question.setQuestionType(RATING_QUESTION);
+
+                    question.setSecondaryQuestion("");
+
                     valid = true;
                 }
                 break;
@@ -218,6 +276,21 @@ public class AddNewQuestion extends AppCompatActivity {
                     option2Field.setError("Empty");
                     option2Field.requestFocus();
                 } else {
+                    question = new Models.QuestionClass(getQuestionId(workForceType));
+
+                    question.setPrimaryQuestion(questionFieldClosed.getText().toString());
+
+                    question.setClosedAnswerYes(option1Field.getText().toString());
+                    question.setClosedAnswerNo(option2Field.getText().toString());
+
+                    question.setCreatedAt(fullDateTime);
+                    question.setLastModifiedAt(fullDateTime);
+
+                    question.setWorkForceType(workForceType);
+                    question.setQuestionType(CLOSED_QUESTION);
+
+                    question.setSecondaryQuestion("");
+
                     valid = true;
                 }
                 break;
@@ -230,6 +303,22 @@ public class AddNewQuestion extends AppCompatActivity {
                     questionFieldCondition2.setError("Empty");
                     questionFieldCondition2.requestFocus();
                 } else {
+
+                    question = new Models.QuestionClass(getQuestionId(workForceType));
+
+                    question.setPrimaryQuestion(questionFieldCondition1.getText().toString());
+
+                    question.setClosedAnswerYes("");
+                    question.setClosedAnswerNo("");
+
+                    question.setCreatedAt(fullDateTime);
+                    question.setLastModifiedAt(fullDateTime);
+
+                    question.setWorkForceType(workForceType);
+                    question.setQuestionType(CONDITION_QUESTION_OPEN);
+
+                    question.setSecondaryQuestion(questionFieldCondition2.getText().toString());
+
                     valid = true;
                 }
                 break;
@@ -248,6 +337,22 @@ public class AddNewQuestion extends AppCompatActivity {
                     option2FieldClosed.setError("Empty");
                     option2FieldClosed.requestFocus();
                 } else {
+
+                    question = new Models.QuestionClass(getQuestionId(workForceType));
+
+                    question.setPrimaryQuestion(questionFieldCondition1Closed.getText().toString());
+
+                    question.setClosedAnswerYes(option1FieldClosed.getText().toString());
+                    question.setClosedAnswerNo(option2FieldClosed.getText().toString());
+
+                    question.setCreatedAt(fullDateTime);
+                    question.setLastModifiedAt(fullDateTime);
+
+                    question.setWorkForceType(workForceType);
+                    question.setQuestionType(CONDITION_QUESTION_CLOSED);
+
+                    question.setSecondaryQuestion(questionFieldCondition2Closed.getText().toString());
+
                     valid = true;
                 }
                 break;
@@ -260,9 +365,31 @@ public class AddNewQuestion extends AppCompatActivity {
         QuestionRepository questionRepository = new QuestionRepository(getApplication());
         if (checkIfAvailable(question)) {
             questionRepository.update(question);
+            Toast.makeText(this, "Question Updated", Toast.LENGTH_SHORT).show();
         } else {
             questionRepository.insert(question);
+            Toast.makeText(this, "Question Added", Toast.LENGTH_SHORT).show();
         }
+        finishActivity();
+    }
+
+    private void saveOnlineQuestion(Models.QuestionClass question) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection(QUESTION_DB).document(question.getQuestionId()).set(question).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                System.out.println("Question saved to firebase");
+                finishActivity();
+            } else {
+                String error = Objects.requireNonNull(task.getException()).toString();
+                System.out.println(error);
+                Toast.makeText(AddNewQuestion.this, error, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void finishActivity() {
+        finish();
     }
 
     private boolean checkIfAvailable(Models.QuestionClass question) {
@@ -293,12 +420,46 @@ public class AddNewQuestion extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (!backPressed) {
-            Toast.makeText(this, "Press back to exit", Toast.LENGTH_SHORT).show();
-            backPressed = true;
-        } else {
-            finish();
-            super.onBackPressed();
+        switch (questionType) {
+            default:
+                break;
+
+            case OPEN_QUESTION:
+            case RATING_QUESTION:
+                if (questionFieldOpen.getText().toString().isEmpty()) {
+                    finishActivity();
+                } else {
+                    addToDrafts();
+                }
+                break;
+
+
+            case CLOSED_QUESTION:
+                if (questionFieldClosed.getText().toString().isEmpty()) {
+                    finishActivity();
+                } else {
+                    addToDrafts();
+                }
+                break;
+
+            case CONDITION_QUESTION_OPEN:
+                if (questionFieldCondition1.getText().toString().isEmpty()) {
+                    finishActivity();
+                } else {
+                    addToDrafts();
+                }
+
+
+                break;
+
+            case CONDITION_QUESTION_CLOSED:
+                if (questionFieldCondition1Closed.getText().toString().isEmpty()) {
+                    finishActivity();
+                } else {
+                    addToDrafts();
+                }
+                break;
+
         }
     }
 }

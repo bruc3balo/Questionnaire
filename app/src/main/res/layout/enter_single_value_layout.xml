@@ -30,7 +30,7 @@
         android:textColor="@color/black"
         android:textColorHint="@color/grey"
         android:hint="Enter value"
-        android:inputType="textPassword" />
+        android:inputType="text" />
 
 
 

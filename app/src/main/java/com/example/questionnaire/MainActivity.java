@@ -18,17 +18,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.questionnaire.model.Models;
 import com.example.questionnaire.utils.MyLinkedMap;
 
-import java.util.Map;
-
 import static com.example.questionnaire.QuestionsActivity.CUSTOMER;
 import static com.example.questionnaire.QuestionsActivity.MAID;
 import static com.example.questionnaire.QuestionsActivity.WORK_FORCE;
 import static com.example.questionnaire.SplashScreen.boldItalicString;
 import static com.example.questionnaire.SplashScreen.underlineString;
-import static com.example.questionnaire.model.Models.keyValueSep;
+import static com.example.questionnaire.model.Models.getAnswer1Answer2;
+import static com.example.questionnaire.model.Models.getMapFromString;
+import static com.example.questionnaire.model.Models.getStringListFromMap;
+import static com.example.questionnaire.model.Models.mapFromListWithDifferentKeys;
 import static com.example.questionnaire.model.Models.primary_secondary_sep;
-import static com.example.questionnaire.model.Models.sep1;
-import static com.example.questionnaire.model.Models.sep2;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
         //Read//Update//Delete
         ImageButton viewQB = findViewById(R.id.viewQB);
         viewQB.setOnClickListener(v -> viewQuestions());
+
+        ImageButton sessionQb = findViewById(R.id.sessionQb);
+        sessionQb.setOnClickListener(v->viewSessions());
 
 
         //Maid
@@ -93,126 +95,7 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("answer 1 is "+answerMap.getKey(0) +"  answer 2 is " +answerMap.getValue(0));
     }
 
-    private MyLinkedMap<String, String> mapFromListWithDifferentKeys(String[] keyList, String[] list) {
-        MyLinkedMap<String, String> map = new MyLinkedMap<>();
-        if (list.length == 0 || keyList.length == 0) {
-            System.out.println("map is empty");
-            return map;
-        } else {
-            for (int i = 0; i <= list.length - 1; i++) {
-                map.put(keyList[i], list[i]);
-                System.out.println("key is " + keyList[i] + "map is " + list[i]);
-            }
-        }
-        return map;
-    }
 
-    private String getStringListFromMap(MyLinkedMap<String, String> map) {
-        String mapString = "";
-        if (map.isEmpty()) {
-            return mapString;
-
-        } else {
-            for (Map.Entry<String, String> pair : map.entrySet()) {
-                mapString = mapString.concat(sep1.concat(pair.getKey()).concat(keyValueSep).concat(pair.getValue()).concat(sep2));
-                System.out.println("entry " + mapString);
-            }
-        }
-
-        return mapString;
-    }
-
-    private MyLinkedMap<String, String> getMapFromString(String s) {
-        MyLinkedMap<String, String> map = new MyLinkedMap<>();
-        if (s == null) {
-            return map;
-        } else if (s.equals("")) {
-            return map;
-        } else {
-            String key = "";
-            String value = "";
-            String entry = "";
-
-            if (s.equals("")) {
-                return map;
-            } else { //if sep1 > start, if : > 1st word is key, if } > 2nd word is value ... end word
-                boolean keyFound = false;
-                for (int i = 0; i <= s.length() - 1; i++) {
-                    if (String.valueOf(s.charAt(i)).equals(sep1)) {
-                        System.out.println("Start of map");
-                    } else if (String.valueOf(s.charAt(i)).equals(sep2)) {
-                        value = entry;
-                        keyFound = false;
-                        map.put(key, value);
-                        entry = "";
-                        System.out.println("End : entry is " + key + keyValueSep + value);
-                    } else {
-
-                        if (String.valueOf(s.charAt(i)).equals(keyValueSep)) { //(key:value) //reached key
-
-                            if (!keyFound) {
-                                key = entry;
-                                entry = "";
-                                keyFound = true;
-                                System.out.println("key is " + key);
-                            }
-
-
-                        } else {
-                            entry = entry.concat(String.valueOf(s.charAt(i))); //add word
-                        }
-                    }
-                }
-            }
-        }
-        return map;
-    }
-
-
-
-    private MyLinkedMap<String, String> getAnswer1Answer2(String s) {
-        MyLinkedMap<String, String> map = new MyLinkedMap<>();
-        //  answer 1^answer 2
-        //if ^ ans 1 is found, ans 2 looking... if } ans 2 is found
-
-
-        if (s == null || s.equals("")) {
-            return map;
-        } else {
-            String ans1 = "";
-            String ans2 = "";
-            String entry = "";
-
-            if (s.equals("")) {
-                return map;
-            } else {
-                boolean ans1found = false;
-
-                for (int i = 0; i <= s.length() - 1; i++) {
-                    if (String.valueOf(s.charAt(i)).equals(primary_secondary_sep)) { //answer 1 is found
-                        ans1found = true;
-                        ans1 = entry;
-                        entry = "";
-                    } else {
-                        entry = entry.concat(String.valueOf(s.charAt(i)));
-                        System.out.println("answer characters "+entry);
-
-                        if (ans1found) {
-                            if (i == s.length() - 1) { // end of ans 2
-                                ans1found = true;
-                                ans2 = entry;
-                                map.put(ans1, ans2);
-                            }
-                        }
-
-                    }
-                }
-
-            }
-        }
-
-        return map;
-    }
 
     private void selectCleaner() {
         startActivity(new Intent(MainActivity.this, QuestionsActivity.class).putExtra(WORK_FORCE, MAID));
@@ -228,9 +111,12 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(MainActivity.this, ViewQuestions.class));
     }
 
+    private void viewSessions() {
+        startActivity(new Intent(MainActivity.this,SessionsHistory.class));
+    }
+
     private void addNewQuestion() {
         startActivity(new Intent(MainActivity.this, AddNewQuestion.class));
-
     }
 
 

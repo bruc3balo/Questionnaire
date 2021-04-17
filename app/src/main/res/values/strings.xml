@@ -25,4 +25,11 @@
     <string name="done">Done</string>
     <string name="skip">Skip</string>
     <string name="conditionalQC">Conditional Question Closed</string>
+    <string name="yes_option_n_if_selected_question_2_will_be_available">Yes Option : \n (If selected, \n question 2 will be available) </string>
+    <string name="no_option_n_if_selected_question_2_will_be_available">No Option : \n (If selected, \n question 2 will not be available) </string>
+    <string name="time">Time</string>
+    <string name="title">title</string>
+    <string name="description">Description</string>
+    <string name="sessions">Sessions</string>
+
 </resources>

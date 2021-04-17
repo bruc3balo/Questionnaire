@@ -14,7 +14,7 @@ import com.example.questionnaire.model.Models;
 import static com.example.questionnaire.model.Models.QuestionClass.QUESTION_DB;
 
 
-@Database(entities = {Models.QuestionClass.class}, version = 2, exportSchema = false)
+@Database(entities = {Models.QuestionClass.class}, version = 1, exportSchema = false)
 public abstract class QuestionDB extends RoomDatabase {
 
     private static QuestionDB instance;

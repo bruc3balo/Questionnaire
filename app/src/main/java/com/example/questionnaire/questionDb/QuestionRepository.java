@@ -40,6 +40,7 @@ public class QuestionRepository {
 
     //Read
     public LiveData<List<QuestionClass>> getAllQuestionListLiveData() {
+
         return allQuestions;
     }
 
@@ -84,6 +85,7 @@ public class QuestionRepository {
     private List<QuestionClass> getAllQuestionListRepo () {
         ArrayList<QuestionClass> QuestionList = new ArrayList<>();
         new Handler(Looper.getMainLooper()).post(() -> QuestionList.addAll(questionDao.getAllQuestionList()));
+        System.out.println(QuestionList.size() + " question repo");
         return QuestionList;
     }
 

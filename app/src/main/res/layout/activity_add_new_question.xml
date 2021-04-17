@@ -36,6 +36,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:checked="true"
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:textColor="@color/red"
@@ -189,7 +190,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="option 1 : "
+                    android:text="@string/yes_option_n_if_selected_question_2_will_be_available"
                     android:textColor="@color/black"
                     android:layout_margin="5dp"
                     android:textAllCaps="true"/>
@@ -223,7 +224,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="option 2 : "
+                    android:text="@string/no_option_n_if_selected_question_2_will_be_available"
                     android:textColor="@color/black"
                     android:layout_margin="5dp"
                     android:textAllCaps="true"/>
@@ -321,7 +322,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="option 1 : "
+                    android:text="@string/yes_option_n_if_selected_question_2_will_be_available"
                     android:textColor="@color/black"
                     android:layout_margin="5dp"
                     android:textAllCaps="true"/>
@@ -354,7 +355,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="option 2 : "
+                    android:text="@string/no_option_n_if_selected_question_2_will_be_available"
                     android:textColor="@color/black"
                     android:layout_margin="5dp"
                     android:textAllCaps="true"/>
@@ -392,7 +393,6 @@
 
 
         </LinearLayout>
-
 
         <Button
             android:id="@+id/saveQ"

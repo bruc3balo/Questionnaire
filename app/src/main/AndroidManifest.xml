@@ -9,6 +9,8 @@
         android:roundIcon="@drawable/ic_faq_"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <activity android:name=".SessionAnswers"></activity>
+        <activity android:name=".SessionsHistory" />
         <activity android:name=".EditQuestion" />
         <activity android:name=".ViewQuestions" />
         <activity android:name=".AddNewQuestion" />
