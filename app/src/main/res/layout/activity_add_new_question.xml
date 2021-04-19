@@ -190,7 +190,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="@string/yes_option_n_if_selected_question_2_will_be_available"
+                    android:text="@string/yes_option"
                     android:textColor="@color/black"
                     android:layout_margin="5dp"
                     android:textAllCaps="true"/>
@@ -224,7 +224,7 @@
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textStyle="bold"
-                    android:text="@string/no_option_n_if_selected_question_2_will_be_available"
+                    android:text="@string/no_option"
                     android:textColor="@color/black"
                     android:layout_margin="5dp"
                     android:textAllCaps="true"/>
@@ -408,5 +408,12 @@
             android:textStyle="bold|italic" />
 
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/newQuestionPb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:layout_anchorGravity="center"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

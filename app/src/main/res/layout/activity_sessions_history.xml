@@ -86,4 +86,12 @@
 
     </LinearLayout>
 
+
+    <ProgressBar
+        android:id="@+id/sessionPb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:layout_anchorGravity="center"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

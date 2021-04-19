@@ -114,6 +114,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
     public void onBindViewHolder(@NonNull SliderViewHolder holder, int position) {
         sliderViewHolder = holder;
         Models.QuestionClass q = questionList.get(position);
+        Button button = holder.doneB;
 
         switch (q.getQuestionType()) {
             default:
@@ -124,7 +125,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                     if (holder.answerField.getText().toString().isEmpty()) {
                         holder.answerField.setError("Error message");
                     } else {
-                        updateQuestion(questionList.get(position), holder.answerField.getText().toString(), SKIPPED);
+                        updateQuestion(questionList.get(position), holder.answerField.getText().toString(), SKIPPED,button);
                     }
                 });
                 break;
@@ -141,7 +142,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                     holder.yesB.setTextColor(Color.WHITE);
                     holder.noB.setTextColor(Color.BLACK);
                     holder.noB.setBackgroundTintList(null);
-                    holder.doneB.setOnClickListener(v12 -> updateQuestion(questionList.get(position), q.getClosedAnswerYes(), SKIPPED));
+                    holder.doneB.setOnClickListener(v12 -> updateQuestion(questionList.get(position), q.getClosedAnswerYes(), SKIPPED,button));
 
                 });
                 if (!checkIfNull(q.getClosedAnswerNo())) {
@@ -154,7 +155,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                     holder.noB.setTextColor(Color.WHITE);
                     holder.yesB.setTextColor(Color.BLACK);
                     holder.yesB.setBackgroundTintList(null);
-                    holder.doneB.setOnClickListener(v12 -> updateQuestion(questionList.get(position), q.getClosedAnswerNo(), SKIPPED));
+                    holder.doneB.setOnClickListener(v12 -> updateQuestion(questionList.get(position), q.getClosedAnswerNo(), SKIPPED,button));
                 });
                 break;
 
@@ -170,7 +171,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                         Toast.makeText(context, "No rating selected", Toast.LENGTH_SHORT).show();
                         new Handler(Looper.myLooper()).postDelayed(() -> holder.ratingBar.setBackgroundColor(Color.TRANSPARENT), 300);
                     } else {
-                        updateQuestion(questionList.get(position), String.valueOf(myRating[0]), SKIPPED);
+                        updateQuestion(questionList.get(position), String.valueOf(myRating[0]), SKIPPED,button);
                     }
                 });
                 break;
@@ -187,9 +188,9 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                         holder.answerField.requestFocus();
                     } else {
                         if (holder.answerField2.getText().toString().isEmpty()) {
-                            updateQuestion(questionList.get(position), holder.answerField.getText().toString(), SKIPPED);
+                            updateQuestion(questionList.get(position), holder.answerField.getText().toString(), SKIPPED,button);
                         } else {
-                            updateQuestion(questionList.get(position), holder.answerField.getText().toString(), holder.answerField2.getText().toString());
+                            updateQuestion(questionList.get(position), holder.answerField.getText().toString(), holder.answerField2.getText().toString(),button);
                         }
                     }
                 });
@@ -223,7 +224,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                             holder.noB.setBackgroundTintList(null);
                             holder.questionTv2.setVisibility(View.VISIBLE);
                             holder.answerField2.setVisibility(View.VISIBLE);
-                            holder.doneB.setOnClickListener(v1 -> updateQuestion(questionList.get(position), q.getClosedAnswerYes(), holder.answerField2.getText().toString()));
+                            holder.doneB.setOnClickListener(v1 -> updateQuestion(questionList.get(position), q.getClosedAnswerYes(), holder.answerField2.getText().toString(),button));
 
                         }
                     });
@@ -239,7 +240,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                             holder.yesB.setTextColor(Color.BLACK);
                             holder.yesB.setBackgroundTintList(null);
 
-                            holder.doneB.setOnClickListener(v1 -> updateQuestion(questionList.get(position), q.getClosedAnswerNo(), SKIPPED));
+                            holder.doneB.setOnClickListener(v1 -> updateQuestion(questionList.get(position), q.getClosedAnswerNo(), SKIPPED,button));
                             holder.questionTv2.setVisibility(View.GONE);
                             holder.answerField2.setVisibility(View.GONE);
                         }
@@ -250,7 +251,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
                 break;
         }
 
-        holder.skipButton.setOnClickListener(v -> skipDialog(position));
+        holder.skipButton.setOnClickListener(v -> skipDialog(position,button));
 
         if (!checkIfNull(q.getPrimaryQuestion())) {
             holder.questionTv.setText(q.getPrimaryQuestion());
@@ -264,7 +265,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
     }
 
 
-    private void updateQuestion(Models.QuestionClass questionClass, String primary, String secondary) {
+    private void updateQuestion(Models.QuestionClass questionClass, String primary, String secondary, Button button) {
         String content = primary.concat(primary_secondary_sep).concat(secondary);
         if (primary != null) {
             questionClass.setPrimaryAnswer(primary);
@@ -279,7 +280,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
         }
 
         myAnswerSessionMap.put(questionClass.getQuestionId(), content);
-        moveToNextQuestion();
+        moveToNextQuestion(button);
     }
 
     private void finalizeSession() {
@@ -305,7 +306,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
     }
 
     @SuppressLint("SetTextI18n")
-    private void skipDialog(int pos) {
+    private void skipDialog(int pos,Button button) {
         Dialog d = new Dialog(context);
         d.setContentView(R.layout.skip_question_dialog);
         d.show();
@@ -315,24 +316,22 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.Slider
         Button yes = d.findViewById(R.id.yesButton), no = d.findViewById(R.id.noButton);
         no.setOnClickListener(v -> d.dismiss());
         yes.setOnClickListener(v -> {
-            updateQuestion(questionList.get(pos), SKIPPED, SKIPPED);
+            updateQuestion(questionList.get(pos), SKIPPED, SKIPPED,button);
             d.dismiss();
         });
     }
 
 
-    private void moveToNextQuestion() {
+    private void moveToNextQuestion(Button button) {
         if (viewPager2.getCurrentItem() < questionList.size() - 1) {
             viewPager2.setCurrentItem(viewPager2.getCurrentItem() + 1);
         } else if (viewPager2.getCurrentItem() == questionList.size() - 1) {
             Toast.makeText(context, "Last question", Toast.LENGTH_SHORT).show();
+            button.setEnabled(false);
             finalizeSession();
         }
     }
 
-    private void skipQuestion() {
-        moveToNextQuestion();
-    }
 
     private void saveSession(Models.QuestionSession session) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();

@@ -1,26 +1,33 @@
 package com.example.questionnaire.adapter;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.text.SpannableStringBuilder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.questionnaire.MainActivity;
 import com.example.questionnaire.R;
 import com.example.questionnaire.model.Models;
 import com.example.questionnaire.utils.MyLinkedMap;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Objects;
 
 import static com.example.questionnaire.adapter.QuestionAdapter.checkIfNull;
@@ -35,10 +42,12 @@ import static com.example.questionnaire.model.Models.QuestionClass.QUESTION_ID;
 import static com.example.questionnaire.model.Models.QuestionClass.QUESTION_TYPE;
 import static com.example.questionnaire.model.Models.QuestionClass.SECONDARY_QUESTION;
 import static com.example.questionnaire.model.Models.QuestionClass.WORK_FORCE_TYPE;
+import static com.example.questionnaire.model.Models.QuestionSession.QUESTION_SESSION_DB;
 import static com.example.questionnaire.model.Models.WORK_MAID;
 import static com.example.questionnaire.model.Models.boldString;
 import static com.example.questionnaire.model.Models.getMapFromString;
 import static com.example.questionnaire.model.Models.italicString;
+import static com.example.questionnaire.model.Models.truncate;
 import static com.example.questionnaire.model.Models.underlineString;
 
 public class SessionListRv extends RecyclerView.Adapter<SessionListRv.ViewHolder> {
@@ -102,8 +111,43 @@ public class SessionListRv extends RecyclerView.Adapter<SessionListRv.ViewHolder
             holder.sessionTitle.setText(underlineString(q.getWorkForceAgentName()).append("'s session"));
         } else {
             holder.sessionTitle.setText(boldString(q.getWorkForceType()).append("'s session"));
-
         }
+
+        holder.sessionTitle.setLongClickable(true);
+        holder.sessionTitle.setOnLongClickListener(v -> {
+            deleteDialog(sessionList.get(position));
+            return false;
+        });
+    }
+
+    private void deleteSession(Models.QuestionSession session) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection(QUESTION_SESSION_DB).document(session.getSessionId()).delete().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                sessionList.remove(session);
+                notifyDataSetChanged();
+                Toast.makeText(mContext, "Session deleted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(mContext, "Failed to delete session", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void deleteDialog(Models.QuestionSession session) {
+        Dialog d = new Dialog(mContext);
+        d.setContentView(R.layout.skip_question_dialog);
+        TextView info = d.findViewById(R.id.deleteInfoTv);
+        Button yes = d.findViewById(R.id.yesButton);
+        Button no = d.findViewById(R.id.noButton);
+        d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        info.setText("Delete this session by ".concat(session.getWorkForceAgentName()).concat(" at ").concat(truncate(Calendar.getInstance().getTime().toString(),16)));
+        yes.setOnClickListener(v -> {
+            d.dismiss();
+            deleteSession(session);
+        });
+        no.setOnClickListener(v -> d.dismiss());
     }
 
     synchronized Models.QuestionClass questionResolver(String questionId) {

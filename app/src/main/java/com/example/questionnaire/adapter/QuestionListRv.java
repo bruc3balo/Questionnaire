@@ -137,7 +137,6 @@ public class QuestionListRv extends RecyclerView.Adapter<QuestionListRv.ViewHold
                     holder.questionTv2.setFreezesText(true);
                 }
 
-                holder.questionTv2.setVisibility(View.GONE);
 
 
                 if (!checkIfNull(q.getClosedAnswerYes())) {

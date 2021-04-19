@@ -6,6 +6,9 @@ import android.text.SpannableStringBuilder;
 import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -439,7 +442,7 @@ public class Models {
         }
     }
 
-    static String truncate(String value, int length) {
+    public static String truncate(String value, int length) {
         // Ensure String length is longer than requested size.
         if (value.length() > length) {
             return value.substring(0, length);
@@ -482,4 +485,21 @@ public class Models {
         }
     }
 
+    public static void isLoadingData(ProgressBar progressBar) {
+        progressBar.setVisibility(View.VISIBLE);
+    }
+
+    public static void stopLoadingData(ProgressBar progressBar) {
+        progressBar.setVisibility(View.GONE);
+    }
+
+    public static void isUploadingData (ProgressBar progressBar, Button button) {
+        progressBar.setVisibility(View.VISIBLE);
+        button.setEnabled(false);
+    }
+
+    public static void failedUploadingData(ProgressBar progressBar, Button button) {
+        progressBar.setVisibility(View.GONE);
+        button.setEnabled(true);
+    }
 }

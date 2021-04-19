@@ -8,18 +8,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import com.example.questionnaire.model.Models;
 import com.example.questionnaire.questionDb.QuestionRepository;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
@@ -48,6 +46,8 @@ public class AddNewQuestion extends AppCompatActivity {
     public static final String Q2 = "q2";
     private EditText questionFieldOpen, questionFieldClosed, option1Field, option2Field, questionFieldCondition1, questionFieldCondition2, questionFieldCondition1Closed, questionFieldCondition2Closed, option1FieldClosed, option2FieldClosed;
     private Models.QuestionClass question;
+    private static Button saveQ;
+    private static ProgressBar progressBar;
 
 
     @SuppressLint("NonConstantResourceId")
@@ -126,11 +126,14 @@ public class AddNewQuestion extends AppCompatActivity {
         option1FieldClosed = findViewById(R.id.option1FieldClosed);
         option2FieldClosed = findViewById(R.id.option2FieldClosed);
 
-        Button saveQ = findViewById(R.id.saveQ);
+        progressBar = findViewById(R.id.newQuestionPb);
+        progressBar.setVisibility(View.GONE);
+
+        saveQ = findViewById(R.id.saveQ);
         saveQ.setOnClickListener(v -> {
             if (validateForm(questionType)) {
-                saveQ.setEnabled(false);
-               // saveQuestion(question);
+                Models.isUploadingData(progressBar, saveQ);
+                // saveQuestion(question);
                 saveOnlineQuestion(question);
             } else {
                 Toast.makeText(AddNewQuestion.this, "check details", Toast.LENGTH_SHORT).show();
@@ -382,6 +385,7 @@ public class AddNewQuestion extends AppCompatActivity {
             } else {
                 String error = Objects.requireNonNull(task.getException()).toString();
                 System.out.println(error);
+                Models.failedUploadingData(progressBar,saveQ);
                 Toast.makeText(AddNewQuestion.this, error, Toast.LENGTH_SHORT).show();
             }
         });

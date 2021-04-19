@@ -1,9 +1,12 @@
 package com.example.questionnaire;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -29,12 +32,14 @@ import static com.example.questionnaire.model.Models.QuestionClass.CLOSED_QUESTI
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_CLOSED;
 import static com.example.questionnaire.model.Models.QuestionClass.CONDITION_QUESTION_OPEN;
 import static com.example.questionnaire.model.Models.QuestionClass.OPEN_QUESTION;
+import static com.example.questionnaire.model.Models.QuestionClass.QUESTION_DB;
 import static com.example.questionnaire.model.Models.QuestionClass.RATING_QUESTION;
 
 public class ViewQuestions extends AppCompatActivity {
 
     private QuestionListRv questionListRv;
     private final ArrayList<Models.QuestionClass> questionList = new ArrayList<>();
+    private static ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +48,9 @@ public class ViewQuestions extends AppCompatActivity {
         Toolbar viewQtb = findViewById(R.id.viewQtb);
         setSupportActionBar(viewQtb);
         viewQtb.setNavigationOnClickListener(v -> finish());
+
+        progressBar = findViewById(R.id.viewPb);
+        progressBar.setVisibility(View.GONE);
 
         RadioGroup typeGroup = findViewById(R.id.typeGroup);
         typeGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -57,20 +65,21 @@ public class ViewQuestions extends AppCompatActivity {
         viewQRv.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         questionListRv = new QuestionListRv(this, questionList);
         viewQRv.setAdapter(questionListRv);
-        questionListRv.setClickListener(new QuestionListRv.ItemClickListener() {
-            @Override
-            public void onItemClick(View view, int position) {
-                Toast.makeText(ViewQuestions.this, questionList.get(position).getQuestionType(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        questionListRv.setClickListener((view, position) -> editQuestion(questionList.get(position)));
 
         setCircleIndicator(viewQRv, questionListRv);
+
+
 
         // getAllQuestions();
         //getAllOnlineQuestions();
 
         // addDummyQuestions();
 
+    }
+
+    private void editQuestion(Models.QuestionClass question) {
+        startActivity(new Intent(ViewQuestions.this,EditQuestion.class).putExtra(QUESTION_DB,question));
     }
 
     private void setCircleIndicator(RecyclerView recyclerView, QuestionListRv adapter) {
@@ -149,10 +158,12 @@ public class ViewQuestions extends AppCompatActivity {
     }
 
     private void loadOnlineCustomerQuestions() {
+        Models.isLoadingData(progressBar);
         getAllCustomerQuestions();
     }
 
     private void loadOnlineMaidQuestions() {
+        Models.isLoadingData(progressBar);
         getAllMaidQuestions();
     }
 
@@ -185,6 +196,8 @@ public class ViewQuestions extends AppCompatActivity {
                 questionList.addAll(questionClasses);
                 questionListRv.notifyDataSetChanged();
             }
+
+            Models.stopLoadingData(progressBar);
         });
     }
 
@@ -198,6 +211,9 @@ public class ViewQuestions extends AppCompatActivity {
                 questionList.addAll(questionClasses);
                 questionListRv.notifyDataSetChanged();
             }
+
+            Models.stopLoadingData(progressBar);
+
         });
     }
 

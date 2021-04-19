@@ -2,12 +2,11 @@ package com.example.questionnaire;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.InputType;
-import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +46,7 @@ public class QuestionsActivity extends AppCompatActivity {
     private String nameOfCandidate = "";
     private String age = "";
     private Toolbar showQtb;
+    private ProgressBar questioningPb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +56,9 @@ public class QuestionsActivity extends AppCompatActivity {
         showQtb = findViewById(R.id.showQtb);
         setSupportActionBar(showQtb);
         showQtb.setNavigationOnClickListener(v -> cancelQuestionAsking());
+
+        questioningPb = findViewById(R.id.questioningPb);
+        Models.isLoadingData(questioningPb);
 
         if (getIntent().getExtras() != null) {
             type = getIntent().getExtras().getInt(WORK_FORCE);
@@ -73,6 +76,7 @@ public class QuestionsActivity extends AppCompatActivity {
         TextView infoTv = d.findViewById(R.id.infoTv);
         Button dismissButton = d.findViewById(R.id.dismissButton);
         d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         infoTv.setText("Welcome to this ".concat(getResources().getString(R.string.questionnaire)).concat("."));
         dismissButton.setOnClickListener(v -> d.dismiss());
         d.setOnDismissListener(dialog -> enterNameDialog());
@@ -86,6 +90,7 @@ public class QuestionsActivity extends AppCompatActivity {
         Button submitButton = d.findViewById(R.id.submitButton);
 
         d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
         descriptionDialog.setText("Enter name of candidate ...");
         descriptionDialog.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -112,13 +117,13 @@ public class QuestionsActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void enterAgeDialog(String nameOfCandidate) {
         Dialog d = new Dialog(this);
-        d.setContentView(R.layout.enter_single_value_layout);
+        d.setContentView(R.layout.enter_single_value_layout_number);
         TextView descriptionDialog = d.findViewById(R.id.descriptionDialog);
         TextView valueField = d.findViewById(R.id.valueField);
         Button submitButton = d.findViewById(R.id.submitButton);
 
         d.show();
-
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         descriptionDialog.setText("Enter age of candidate " + nameOfCandidate);
         descriptionDialog.setRawInputType(Configuration.KEYBOARD_12KEY);
         submitButton.setOnClickListener(v -> {
@@ -161,6 +166,7 @@ public class QuestionsActivity extends AppCompatActivity {
                 Toast.makeText(this, empty, Toast.LENGTH_SHORT).show();
                 showEmptyListDialog(empty);
             } else {
+                Models.stopLoadingData(questioningPb);
                 questionList.clear();
                 questionList.addAll(questionClasses);
                 questionAdapter.notifyDataSetChanged();
@@ -176,6 +182,7 @@ public class QuestionsActivity extends AppCompatActivity {
                 Toast.makeText(this, empty, Toast.LENGTH_SHORT).show();
                 showEmptyListDialog(empty);
             } else {
+                Models.stopLoadingData(questioningPb);
                 questionList.clear();
                 questionList.addAll(questionClasses);
                 questionAdapter.notifyDataSetChanged();
@@ -189,12 +196,11 @@ public class QuestionsActivity extends AppCompatActivity {
         TextView infoTv = d.findViewById(R.id.infoTv);
         infoTv.setText(s);
         d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         Button dismiss = d.findViewById(R.id.dismissButton);
         dismiss.setOnClickListener(v -> d.dismiss());
         d.setOnDismissListener(dialog -> finish());
     }
-
-
 
 
     private void addDummyQuestions() {
@@ -348,14 +354,31 @@ public class QuestionsActivity extends AppCompatActivity {
         backPressed = false;
     }
 
+    private void discardDialog() {
+        Dialog d = new Dialog(QuestionsActivity.this);
+        d.setContentView(R.layout.skip_question_dialog);
+        TextView info = d.findViewById(R.id.deleteInfoTv);
+        Button yes = d.findViewById(R.id.yesButton);
+        Button no = d.findViewById(R.id.noButton);
+        d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        info.setText("Discard Session?");
+        yes.setOnClickListener(v -> {
+            d.dismiss();
+            super.onBackPressed();
+            finish();
+        });
+        no.setOnClickListener(v -> d.dismiss());
+    }
+
     @Override
     public void onBackPressed() {
         if (!backPressed) {
             Toast.makeText(this, "Press back to exit", Toast.LENGTH_SHORT).show();
             backPressed = true;
         } else {
-            finish();
-            super.onBackPressed();
+            discardDialog();
         }
     }
 }

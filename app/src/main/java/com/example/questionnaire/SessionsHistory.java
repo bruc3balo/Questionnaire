@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,6 +42,7 @@ public class SessionsHistory extends AppCompatActivity {
 
     private SessionListRv sessionListRv;
     private final ArrayList<Models.QuestionSession> questionList = new ArrayList<>();
+    private static ProgressBar sessionPb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +52,9 @@ public class SessionsHistory extends AppCompatActivity {
         Toolbar viewQtb = findViewById(R.id.sessionQtb);
         setSupportActionBar(viewQtb);
         viewQtb.setNavigationOnClickListener(v -> finish());
+
+        sessionPb = findViewById(R.id.sessionPb);
+        sessionPb.setVisibility(View.GONE);
 
         RadioGroup typeGroup = findViewById(R.id.typeGroup);
         typeGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -80,6 +86,8 @@ public class SessionsHistory extends AppCompatActivity {
             questionList.clear();
             questionList.addAll(sessionList);
             sessionListRv.notifyDataSetChanged();
+            Models.stopLoadingData(sessionPb);
+
         });
     }
 
@@ -90,6 +98,7 @@ public class SessionsHistory extends AppCompatActivity {
             questionList.clear();
             questionList.addAll(sessionList);
             sessionListRv.notifyDataSetChanged();
+            Models.stopLoadingData(sessionPb);
         });
     }
 
@@ -124,17 +133,21 @@ public class SessionsHistory extends AppCompatActivity {
     }
 
     private void loadOnlineMaidSessions() {
+        Models.isLoadingData(sessionPb);
         getAllMaidList();
     }
 
     private void loadOfflineMaidSessions() {
+
     }
 
     private void loadOnlineCustomerSessions() {
+        Models.isLoadingData(sessionPb);
         getAllCustomerList();
     }
 
     private void loadOfflineCustomerSessions() {
+
     }
 
     @SuppressLint("UseCompatLoadingForDrawables")

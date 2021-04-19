@@ -1,6 +1,7 @@
 package com.example.questionnaire;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.SpannableString;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -149,14 +151,32 @@ public class MainActivity extends AppCompatActivity {
         backPressed = false;
     }
 
+    private void discardDialog() {
+        Dialog d = new Dialog(MainActivity.this);
+        d.setContentView(R.layout.skip_question_dialog);
+        TextView info = d.findViewById(R.id.deleteInfoTv);
+        Button yes = d.findViewById(R.id.yesButton);
+        Button no = d.findViewById(R.id.noButton);
+        d.show();
+        d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
+        info.setText("Exit Application?");
+        yes.setOnClickListener(v -> {
+            d.dismiss();
+            super.onBackPressed();
+            finish();
+        });
+        no.setOnClickListener(v -> d.dismiss());
+    }
+
+
     @Override
     public void onBackPressed() {
         if (!backPressed) {
             Toast.makeText(this, "Press back to exit", Toast.LENGTH_SHORT).show();
             backPressed = true;
         } else {
-            finish();
-            super.onBackPressed();
+            discardDialog();
         }
     }
 }
